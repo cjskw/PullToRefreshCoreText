@@ -97,8 +97,10 @@
     [self setLoading:NO];
     
     if (self.scrollView.contentInset.top > 0) {
+        UIEdgeInsets insets = self.scrollView.contentInset;
+        insets.top = 0;
         [UIView animateWithDuration:0.2 animations:^{
-            self.scrollView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+            self.scrollView.contentInset = insets;
         }];
     }
 }
@@ -158,6 +160,18 @@
 #pragma mark - Interaction
 
 - (void)scrollViewDidScroll:(UIPanGestureRecognizer *)pan {
+    
+    if (fabs(self.superview.bounds.size.width - self.frame.size.width) > CGFLOAT_MIN) {
+        
+            // Update our frame with the new width.
+        CGRect newFrame = self.frame;
+        newFrame.size.width = self.superview.bounds.size.width;
+        self.frame = newFrame;
+        
+            // Update the layers.
+        [self setLoading:self.isLoading];
+    }
+    
     if (pan.state == UIGestureRecognizerStateChanged) {
         if (self.isLoading)
             return;
@@ -184,8 +198,10 @@
         if (self.status == PullToRefreshCoreTextStatusTriggered) {
             [self startLoading];
             
+            UIEdgeInsets insets = self.scrollView.contentInset;
+            insets.top = self.triggerOffset + self.triggerThreshold;
             [UIView animateWithDuration:0.2 animations:^{
-                [self.scrollView setContentInset:UIEdgeInsetsMake(self.triggerOffset + self.triggerThreshold, 0, 0, 0)];
+                [self.scrollView setContentInset:insets];
             }];
         } else {
             [(CALayer *)[self.layer.sublayers firstObject] setTimeOffset:0];
